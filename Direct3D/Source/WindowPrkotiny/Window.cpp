@@ -1,5 +1,6 @@
 ﻿#include "Window.h"
 #include "../Resource/resource.h"
+#include <stdexcept>
 
 Window::WindowClass Window::WindowClass::wndClass;
 
@@ -38,7 +39,9 @@ HINSTANCE Window::WindowClass::GetInstance() noexcept
 	return wndClass.hInst;
 }
 
-Window::Window(int width, int height, const LPCWSTR name) noexcept
+Window::Window(int width, int height, const LPCWSTR name)
+	:
+	width(width), height(height)
 {
 	/* vytvorenie canvasu ktorý sa prispôsobí okrajom okna */
 	RECT wr;
@@ -71,6 +74,13 @@ Window::~Window()
 	DestroyWindow(hWnd);
 }
 
+void Window::SetTitle(const std::string& title)
+{
+	std::wstring wtitle(title.begin(), title.end());
+	SetWindowText(hWnd, wtitle.c_str());
+}
+
+
 /* volá sa iba pred vytvorením okna, uloží (WinApi) pointer na Window classu */
 LRESULT CALLBACK Window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -98,6 +108,8 @@ LRESULT CALLBACK Window::HandleMsgInvoke(HWND hWnd, UINT msg, WPARAM wParam, LPA
 
 LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
+	const POINTS pt = MAKEPOINTS(lParam);
+
 	switch (msg)
 	{
 	case WM_CLOSE:
@@ -123,6 +135,46 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 		kbd.OnKeyReleased(static_cast<unsigned char>(wParam));
 		break;
 	/* -------------------------- */
+	/* všetky myšové eventy */
+	case WM_MOUSEMOVE:
+	{
+		if(pt.x >= 0 && pt.x < width && pt.y >= 0 && pt.y < height)
+		{
+			mouse.OnMouseMove(pt.x, pt.y);
+			if(!mouse.IsInWindow())
+			{
+				SetCapture(hWnd);
+				mouse.OnMouseEnter();
+			}
+		}
+		else
+		{
+			if(wParam & (MK_LBUTTON | MK_RBUTTON))
+			{
+				mouse.OnMouseMove(pt.x, pt.y);
+			}
+			else
+			{
+				ReleaseCapture();
+				mouse.OnMouseLeave();
+			}
+		}
+		break;
+	}
+	case WM_LBUTTONDOWN:
+		mouse.OnLeftPressed(pt.x, pt.y);
+		break;
+	case WM_LBUTTONUP:
+		mouse.OnLeftReleased(pt.x, pt.y);
+		break;
+	case WM_RBUTTONDOWN:
+		mouse.OnRightPressed(pt.x, pt.y);
+		break;
+	case WM_RBUTTONUP:
+		mouse.OnRightReleased(pt.x, pt.y);
+		break;
+	/* -------------------- */
+
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);

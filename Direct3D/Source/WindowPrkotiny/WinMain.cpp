@@ -1,5 +1,6 @@
 #include "Window.h"
 #include <iostream>
+#include <sstream>
 
 void CreateConsole()
 {
@@ -21,27 +22,40 @@ int CALLBACK WinMain
 	_In_ int nCmdShow
 )
 {
-	Window wnd(640, 480, L"Direct 3D");
-
-	CreateConsole();
-
-	MSG msg;
-	BOOL gResult;
-	while((gResult =  GetMessage(&msg, nullptr, 0, 0)) > 0)
+	try
 	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+		Window wnd(640, 480, L"Direct 3D");
 
-		if(wnd.kbd.KeyIsPressed('A'))
+		CreateConsole();
+
+		MSG msg;
+		BOOL gResult;
+		while ((gResult = GetMessage(&msg, nullptr, 0, 0)) > 0)
 		{
-			std::cout << "Space\n";
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+
+			if (wnd.kbd.KeyIsPressed('A'))
+			{
+				std::cout << "Space\n";
+			}
+			std::pair<int, int> pos = wnd.mouse.GetPos();
+
+			std::ostringstream oss;
+			oss << "Mouse position: (" << pos.first << "," << pos.second << ")" << std::endl;
+			wnd.SetTitle(oss.str());
 		}
-	}
 
-	if(gResult == -1)
+
+		if (gResult == -1)
+		{
+			return -1;
+		}
+
+		return static_cast<int>(msg.wParam);
+	}
+	catch (const std::exception& e)
 	{
-		return -1;
+		std::cout << "Exception caught: "<< e.what() << std::endl;
 	}
-
-	return static_cast<int>(msg.wParam);
 }

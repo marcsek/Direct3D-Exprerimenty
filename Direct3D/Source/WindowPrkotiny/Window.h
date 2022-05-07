@@ -2,6 +2,7 @@
 
 #include "LepsiWin.h"
 #include "../Input/Keyboard.h"
+#include "../Input/Mouse.h"
 
 class Window
 {
@@ -22,8 +23,10 @@ private:
 		HINSTANCE hInst;
 	};
 public:
-	Window(int width, int height, const LPCWSTR name) noexcept;
+	Window(int width, int height, const LPCWSTR name);
 	~Window();
+
+	void SetTitle(const std::string& title);
 
 private:
 	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -32,6 +35,7 @@ private:
 
 public:
 	Keyboard kbd;
+	Mouse mouse;
 
 private:
 	int width = 0, height = 0;
