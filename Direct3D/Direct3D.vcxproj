@@ -149,10 +149,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Input\Keyboard.cpp" />
     <ClCompile Include="Source\WindowPrkotiny\Window.cpp" />
     <ClCompile Include="Source\WindowPrkotiny\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Input\Keyboard.h" />
     <ClInclude Include="Source\Resource\resource.h" />
     <ClInclude Include="Source\WindowPrkotiny\Window.h" />
     <ClInclude Include="Source\WindowPrkotiny\LepsiWin.h" />

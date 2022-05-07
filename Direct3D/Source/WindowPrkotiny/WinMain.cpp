@@ -31,6 +31,11 @@ int CALLBACK WinMain
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
+
+		if(wnd.kbd.KeyIsPressed('A'))
+		{
+			std::cout << "Space\n";
+		}
 	}
 
 	if(gResult == -1)

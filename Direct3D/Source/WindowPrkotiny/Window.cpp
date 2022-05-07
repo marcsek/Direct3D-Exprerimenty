@@ -103,6 +103,26 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
+
+	case WM_KILLFOCUS:
+		kbd.ClearState();
+		break; 
+
+	/* všetky klávesnicové eventy */
+	case WM_KEYDOWN:
+		/* SYSKEY použité kvôli altu */
+	case WM_SYSKEYDOWN:
+		/* vypnutie autorepatu */
+		if(!(lParam & 0x4000'0000))
+		{
+			kbd.OnKeyPressed(static_cast<unsigned char>(wParam));
+		}
+		break;
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		kbd.OnKeyReleased(static_cast<unsigned char>(wParam));
+		break;
+	/* -------------------------- */
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LepsiWin.h"
+#include "../Input/Keyboard.h"
 
 class Window
 {
@@ -29,6 +30,10 @@ private:
 	static LRESULT CALLBACK HandleMsgInvoke(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 
-	int width, height;
+public:
+	Keyboard kbd;
+
+private:
+	int width = 0, height = 0;
 	HWND hWnd;
 };
