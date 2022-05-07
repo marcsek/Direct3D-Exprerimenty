@@ -153,8 +153,15 @@
     <ClCompile Include="Source\WindowPrkotiny\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Resource\resource.h" />
     <ClInclude Include="Source\WindowPrkotiny\Window.h" />
     <ClInclude Include="Source\WindowPrkotiny\LepsiWin.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Source\Resource\Direct3D.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="D:\Downloads\directx.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

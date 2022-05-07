@@ -21,9 +21,9 @@ int CALLBACK WinMain
 	_In_ int nCmdShow
 )
 {
-	CreateConsole();
-
 	Window wnd(640, 480, L"Direct 3D");
+
+	CreateConsole();
 
 	MSG msg;
 	BOOL gResult;
