@@ -2,7 +2,7 @@
 /**
 *     /\
 *    /??\
-*	 Header ktorý sa používa na importovanie "Windows.h" 
+*	Header ktorý sa používa na importovanie "Windows.h" 
 *	 \??/
 *	  \/
 */
