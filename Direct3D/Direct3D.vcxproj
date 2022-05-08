@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Vendor\DXGIInfo\DxgiInfoManager.cpp" />
     <ClCompile Include="Source\Utilities\LepsiaException.cpp" />
     <ClCompile Include="Source\Vendor\dxerr\dxerr.cpp" />
     <ClCompile Include="Source\Graphics.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="Source\WindowPrkotiny\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Vendor\DXGIInfo\DxgiInfoManager.h" />
     <ClInclude Include="Source\Utilities\LepsiaException.h" />
     <ClInclude Include="Source\Vendor\dxerr\dxerr.h" />
     <ClInclude Include="Source\Graphics.h" />
