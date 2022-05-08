@@ -1,6 +1,6 @@
 ﻿#include "Window.h"
 #include "../Resource/resource.h"
-#include <stdexcept>
+#include "sstream"
 
 Window::WindowClass Window::WindowClass::wndClass;
 
@@ -29,6 +29,12 @@ Window::WindowClass::~WindowClass()
 	UnregisterClass(wndClassName, GetInstance());
 }
 
+Graphics& Window::Gfx()
+{
+	return *pGfx;
+}
+
+
 const LPCWSTR Window::WindowClass::GetName() noexcept
 {
 	return wndClassName;
@@ -50,8 +56,10 @@ Window::Window(int width, int height, const LPCWSTR name)
 	wr.top = 100;
 	wr.bottom = height + wr.top;
 	/* --------------------------------------------------- */
-
-	AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE);
+	if(AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE) == 0)
+	{
+		throw CHWND_LAST_EXCEPT();
+	}
 
 	hWnd = CreateWindow
 	(
@@ -66,13 +74,29 @@ Window::Window(int width, int height, const LPCWSTR name)
 		this
 	);
 
+	if(hWnd == nullptr)
+	{
+		throw CHWND_LAST_EXCEPT();
+	}
+
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
+
+	pGfx = std::make_unique<Graphics>(hWnd);
+
+	window_is_running = true;
 }
 
 Window::~Window()
 {
+	window_is_running = false;
 	DestroyWindow(hWnd);
 }
+
+bool Window::IsRunning()
+{
+	return window_is_running;
+}
+
 
 void Window::SetTitle(const std::string& title)
 {
@@ -80,6 +104,22 @@ void Window::SetTitle(const std::string& title)
 	SetWindowText(hWnd, wtitle.c_str());
 }
 
+std::optional<int> Window::ProcessMessage()
+{
+	MSG msg;
+
+	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+	{
+		if (msg.message == WM_QUIT)
+		{
+			return static_cast<int>(msg.wParam);
+		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	return {};
+}
 
 /* volá sa iba pred vytvorením okna, uloží (WinApi) pointer na Window classu */
 LRESULT CALLBACK Window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -113,6 +153,7 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 	switch (msg)
 	{
 	case WM_CLOSE:
+		window_is_running = false;
 		PostQuitMessage(0);
 		return 0;
 
@@ -179,4 +220,65 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
+
+Window::Exception::Exception(int line, const char* file, HRESULT hr) noexcept
+	:
+	LepsiaException(line, file), hr(hr)
+{}
+
+const char* Window::Exception::what() const noexcept
+{
+	std::ostringstream oss;
+	oss << GetType()
+	<< std::endl << "[Error Code] " << GetErrorCode()
+	<< std::endl << "[Descrition] " << GetErrorString()
+	<< std::endl << GetOriginString();
+
+	whatBuffer = oss.str();
+	return whatBuffer.c_str();
+}
+
+const char* Window::Exception::GetType() const noexcept
+{
+	return "Lepsia Window Exception";
+}
+
+std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
+{
+	char* pMsgBuf = nullptr;
+	DWORD nMsgLen = FormatMessageA
+	(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr,
+		hr,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		reinterpret_cast<LPSTR>(&pMsgBuf),
+		0,
+		nullptr
+	);
+
+	if(nMsgLen == 0)
+	{
+		return "Undefined error code";
+	}
+	std::string errorString = pMsgBuf;
+	LocalFree(pMsgBuf);
+	return errorString;
+}
+
+HRESULT Window::Exception::GetErrorCode() const noexcept
+{
+	return hr;
+}
+
+std::string Window::Exception::GetErrorString() const noexcept
+{
+	return TranslateErrorCode(hr);
+}
+
+
+
+
+
+
 

@@ -1,6 +1,5 @@
-#include "Window.h"
 #include <iostream>
-#include <sstream>
+#include "../App.h"
 
 void CreateConsole()
 {
@@ -24,38 +23,22 @@ int CALLBACK WinMain
 {
 	try
 	{
-		Window wnd(640, 480, L"Direct 3D");
-
 		CreateConsole();
 
-		MSG msg;
-		BOOL gResult;
-		while ((gResult = GetMessage(&msg, nullptr, 0, 0)) > 0)
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-
-			if (wnd.kbd.KeyIsPressed('A'))
-			{
-				std::cout << "Space\n";
-			}
-			std::pair<int, int> pos = wnd.mouse.GetPos();
-
-			std::ostringstream oss;
-			oss << "Mouse position: (" << pos.first << "," << pos.second << ")" << std::endl;
-			wnd.SetTitle(oss.str());
-		}
-
-
-		if (gResult == -1)
-		{
-			return -1;
-		}
-
-		return static_cast<int>(msg.wParam);
+		App{}.Create();
+	}
+	catch (const LepsiaException& e)
+	{
+		MessageBoxA(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONEXCLAMATION);
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "Exception caught: "<< e.what() << std::endl;
+		MessageBoxA(nullptr, e.what(), "Standard", MB_OK | MB_ICONEXCLAMATION);
 	}
+	catch(...)
+	{
+		MessageBoxA(nullptr, "No message", "Unknown", MB_OK | MB_ICONEXCLAMATION);
+	}
+
+	return -1;
 }

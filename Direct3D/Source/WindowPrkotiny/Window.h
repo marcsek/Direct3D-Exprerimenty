@@ -3,10 +3,27 @@
 #include "LepsiWin.h"
 #include "../Input/Keyboard.h"
 #include "../Input/Mouse.h"
+#include "../Graphics.h"
+#include "../Utilities/LepsiaException.h"
+#include <optional>
+#include <memory>
 
 class Window
 {
-private:
+public:
+	class Exception : public LepsiaException
+	{
+	public:
+		Exception(int line, const char* file, HRESULT hr) noexcept;
+		const char* what() const noexcept override;
+		virtual const char* GetType() const noexcept;
+		static std::string TranslateErrorCode(HRESULT hr) noexcept;
+		HRESULT GetErrorCode() const noexcept;
+		std::string GetErrorString() const noexcept;
+	private:
+		HRESULT hr;
+	};
+
 	class WindowClass
 	{
 	public:
@@ -27,6 +44,10 @@ public:
 	~Window();
 
 	void SetTitle(const std::string& title);
+	static std::optional<int> ProcessMessage();
+	bool IsRunning();
+
+	Graphics& Gfx();
 
 private:
 	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -40,4 +61,11 @@ public:
 private:
 	int width = 0, height = 0;
 	HWND hWnd;
+	std::unique_ptr<Graphics> pGfx;
+
+	bool window_is_running = false;
 };
+
+/* pomocné makro na exception */
+#define CHWND_EXCEPT( hr ) Window::Exception(__LINE__, __FILE__, hr)
+#define CHWND_LAST_EXCEPT() Window::Exception(__LINE__, __FILE__, GetLastError())
