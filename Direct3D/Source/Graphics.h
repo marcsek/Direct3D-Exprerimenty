@@ -5,9 +5,12 @@
 #include <vector>
 #include "Vendor/DXGIInfo/DxgiInfoManager.h"
 #include <wrl.h>
+#include <DirectXMath.h>
+#include <random>
 
 class Graphics
 {
+	friend class Bindable;
 public:
 	class Exception : public LepsiaException
 	{
@@ -39,6 +42,18 @@ public:
 		std::string reason;
 	};
 
+	class InfoException : public Exception
+	{
+	public:
+		InfoException(int line, const char* file, std::vector<std::string> infoMsgs) noexcept;
+		const char* what() const noexcept override;
+		const char* GetType() const noexcept override;
+		std::string GetErrorInfo() const noexcept;
+
+	private:
+		std::string info;
+	};
+
 public:
 	Graphics(HWND hWnd);
 	Graphics(const Graphics&) = delete;
@@ -48,7 +63,12 @@ public:
 	void EndFrame();
 	void ClearBuffer(float r, float g, float b) noexcept;
 
+	void DrawIndexed(UINT count) noexcept;
+	void SetProjection(DirectX::FXMMATRIX proj) noexcept;
+	DirectX::XMMATRIX GetProjection() const noexcept;
+
 private:
+	DirectX::XMMATRIX projection;
 #ifdef _DEBUG
 	DxgiInfoManager infoManager;
 #endif
@@ -57,5 +77,6 @@ private:
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pTarget;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDSV;
 };
 

@@ -5,6 +5,16 @@ std::pair<int, int> Mouse::GetPos() const noexcept
 	return { x, y };
 }
 
+int Mouse::GetX() const noexcept
+{
+	return x;
+}
+
+int Mouse::GetY() const noexcept
+{
+	return y;
+}
+
 bool Mouse::LeftIsPressed() const noexcept
 {
 	return leftIsPressed;

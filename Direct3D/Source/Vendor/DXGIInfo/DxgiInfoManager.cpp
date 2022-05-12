@@ -3,6 +3,7 @@
 #include "../../Graphics.h"
 #include <dxgidebug.h>
 #include <memory>
+#include "../../Macros/WindowsThrowMacros.h"
 
 #pragma comment(lib, "dxguid.lib")
 
@@ -55,7 +56,8 @@ std::vector<std::string> DxgiInfoManager::GetMessages() const
 		auto pMessage = reinterpret_cast<DXGI_INFO_QUEUE_MESSAGE*>(bytes.get());
 		// get the message and push its description into the vector
 		GFX_THROW_NOINFO(pDxgiInfoQueue->GetMessage(DXGI_DEBUG_ALL, i, pMessage, &messageLength));
-		messages.emplace_back(pMessage->pDescription);
+		std::string description(pMessage->pDescription);
+		messages.push_back(description);
 	}
 	return messages;
 }

@@ -9,6 +9,8 @@ public:
 	Mouse() = default;
 
 	std::pair<int, int> GetPos() const noexcept;
+	int GetX() const noexcept;
+	int GetY() const noexcept;
 	bool LeftIsPressed() const noexcept;
 	bool RightIsPressed() const noexcept;
 	bool IsInWindow() const noexcept;
