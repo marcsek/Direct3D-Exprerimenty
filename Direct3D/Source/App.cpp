@@ -1,5 +1,8 @@
 #include "App.h"
 
+#include <iomanip>
+#include <iostream>
+
 #include "Drawable/Box.h"
 #include <memory>
 
@@ -13,7 +16,7 @@ App::App()
 	std::uniform_real_distribution<float> odist(0.0f, 3.1415f * 0.3f);
 	std::uniform_real_distribution<float> rdist(6.0f, 20.0f);
 
-	for (auto i = 0; i < 80; i++)
+	for (auto i = 0; i < 50; i++)
 	{
 		boxes.push_back
 		(
@@ -47,7 +50,12 @@ int App::Create()
 		/*	std::cout << "\rNepresnost delty: " << std::setprecision(10) << std::fixed << delta - 1.0;
 			delta -= 1.0;
 		}*/
+		float frame_time = frameTimer.Mark();
 		ComposeFrame();
+		std::cout
+		<< "\rframe_time: " << std::setprecision(5) << std::fixed << frame_time
+		<< " fps: " << std::setprecision(2) << std::fixed << 1.0f / frame_time;
+
 	}
 	return 0;
 }
@@ -66,6 +74,7 @@ void App::ComposeFrame()
 		b->Update(dt);
 		b->Draw(wnd.Gfx());
 	}
+
 	wnd.Gfx().EndFrame();
 }
 

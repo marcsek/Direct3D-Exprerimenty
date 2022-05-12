@@ -14,6 +14,7 @@ private:
 
 	Window wnd;
 	LepsiTimer lTimer;
+	LepsiTimer frameTimer;
 
 	/* premenné na loop aplikácie */
 	double delta = 0;

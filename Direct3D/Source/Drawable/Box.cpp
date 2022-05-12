@@ -1,6 +1,7 @@
 #include "Box.h"
 #include "../Bindable/BindableBase.h"
 #include "../Macros/GraphicsThrowMacros.h"
+#include "../GeoPrimitives/Sphere.h"
 
 Box::Box
 (
@@ -22,33 +23,38 @@ chi(adist(rng)),
 theta(adist(rng)),
 phi(adist(rng))
 {
+	namespace dx = DirectX;
 
 	if (!IsStaticInitialized())
 	{
 		struct Vertex
 		{
-			struct
-			{
-				float x, y, z;
-			} pos;
-			/*struct
-			{
-				unsigned char r, g, b, a;
-			} color;*/
+			dx::XMFLOAT3 pos;
+			//struct
+			//{
+			//	float x, y, z;
+			//} pos;
+			///*struct
+			//{
+			//	unsigned char r, g, b, a;
+			//} color;*/
 		};
 
-		const std::vector<Vertex> vertices =
-		{
-			{-1.0f, -1.0f, -1.0f, /*255,0,0*/},
-			{1.0f, -1.0f, -1.0f, /*0,255,0*/},
-			{-1.0f, 1.0f, -1.0f, /*0,0,255*/},
-			{1.0f, 1.0f, -1.0f, /*255,255,0*/},
-			{-1.0f, -1.0f, 1.0f, /*255,0,255*/},
-			{1.0f, -1.0f, 1.0f, /*0,255,255*/},
-			{-1.0f, 1.0f, 1.0f, /*0,0,0*/},
-			{1.0f, 1.0f, 1.0f, /*255,255,255*/}
-		};
-		AddStaticBind(std::make_unique<VertexBuffer>(gfx, vertices));
+		//const std::vector<Vertex> vertices =
+		//{
+		//	{-1.0f, -1.0f, -1.0f, /*255,0,0*/},
+		//	{1.0f, -1.0f, -1.0f, /*0,255,0*/},
+		//	{-1.0f, 1.0f, -1.0f, /*0,0,255*/},
+		//	{1.0f, 1.0f, -1.0f, /*255,255,0*/},
+		//	{-1.0f, -1.0f, 1.0f, /*255,0,255*/},
+		//	{1.0f, -1.0f, 1.0f, /*0,255,255*/},
+		//	{-1.0f, 1.0f, 1.0f, /*0,0,0*/},
+		//	{1.0f, 1.0f, 1.0f, /*255,255,255*/}
+		//};
+		auto model = Sphere::Make<Vertex>();
+		model.Transform(dx::XMMatrixScaling(1.0f, 1.0f, 1.2f));
+
+		AddStaticBind(std::make_unique<VertexBuffer>(gfx,model.vertices));
 
 		auto pvs = std::make_unique<VertexShader>(gfx, L"VertexShader.cso");
 		auto pvsbc = pvs->GetBytecode();
@@ -56,16 +62,16 @@ phi(adist(rng))
 
 		AddStaticBind(std::make_unique<PixelShader>(gfx, L"PixelShader.cso"));
 
-		const std::vector<unsigned short> indices =
-		{
-			0, 2, 1,  2, 3, 1,
-			1, 3, 5,  3, 7, 5,
-			2, 6, 3,  3, 6, 7,
-			4, 5, 7,  4, 7, 6,
-			0, 4, 2,  2, 4, 6,
-			0, 1, 4,  1, 5, 4
-		};
-		AddStaticIndexBuffer(std::make_unique<IndexBuffer>(gfx, indices));
+		//const std::vector<unsigned short> indices =
+		//{
+		//	0, 2, 1,  2, 3, 1,
+		//	1, 3, 5,  3, 7, 5,
+		//	2, 6, 3,  3, 6, 7,
+		//	4, 5, 7,  4, 7, 6,
+		//	0, 4, 2,  2, 4, 6,
+		//	0, 1, 4,  1, 5, 4
+		//};
+		AddStaticIndexBuffer(std::make_unique<IndexBuffer>(gfx, model.indices));
 
 		struct ConstantBuffer2
 		{

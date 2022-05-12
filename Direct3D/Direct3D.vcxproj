@@ -180,8 +180,15 @@
     <ClInclude Include="Source\Drawable\Drawable.h" />
     <ClInclude Include="Source\Bindable\Bindable.h" />
     <ClInclude Include="Source\Drawable\DrawableBase.h" />
+    <ClInclude Include="Source\GeoPrimitives\Cone.h" />
+    <ClInclude Include="Source\GeoPrimitives\Cube.h" />
+    <ClInclude Include="Source\GeoPrimitives\IndexedTriangleList.h" />
+    <ClInclude Include="Source\GeoPrimitives\Plane.h" />
+    <ClInclude Include="Source\GeoPrimitives\Prism.h" />
+    <ClInclude Include="Source\GeoPrimitives\Sphere.h" />
     <ClInclude Include="Source\Macros\GraphicsThrowMacros.h" />
     <ClInclude Include="Source\Macros\WindowsThrowMacros.h" />
+    <ClInclude Include="Source\Utilities\LepsiaMath.h" />
     <ClInclude Include="Source\Vendor\DXGIInfo\DxgiInfoManager.h" />
     <ClInclude Include="Source\Utilities\LepsiaException.h" />
     <ClInclude Include="Source\Vendor\dxerr\dxerr.h" />
