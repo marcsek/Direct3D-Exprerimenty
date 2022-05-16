@@ -70,6 +70,8 @@ public:
 	Keyboard kbd;
 	Mouse mouse;
 
+	inline static int screen_width = 0;
+	inline static int screen_height = 0;
 private:
 	int width = 0, height = 0;
 	HWND hWnd;

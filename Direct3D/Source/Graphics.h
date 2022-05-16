@@ -61,14 +61,22 @@ public:
 	~Graphics() = default;
 
 	void EndFrame();
-	void ClearBuffer(float r, float g, float b) noexcept;
+	void BeginFrame(float r, float g, float b) noexcept;
 
 	void DrawIndexed(UINT count) noexcept;
 	void SetProjection(DirectX::FXMMATRIX proj) noexcept;
 	DirectX::XMMATRIX GetProjection() const noexcept;
+	void SetCamera(DirectX::FXMMATRIX cam) noexcept;
+	DirectX::XMMATRIX GetCamera() const noexcept;
+
+	void EnableImGui() noexcept;
+	void DisableImGui() noexcept;
+	bool IsImGuiEnabled() const noexcept;
 
 private:
 	DirectX::XMMATRIX projection;
+	DirectX::XMMATRIX camera;
+
 #ifdef _DEBUG
 	DxgiInfoManager infoManager;
 #endif
@@ -78,5 +86,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pTarget;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDSV;
+
+	bool imGuiEnabled = true;
 };
 

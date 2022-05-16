@@ -2,6 +2,7 @@
 #include "../Resource/resource.h"
 #include "sstream"
 #include "../Macros/WindowsThrowMacros.h"
+#include "../Vendor/ImGui/imgui_impl_win32.h"
 
 Window::WindowClass Window::WindowClass::wndClass;
 
@@ -54,6 +55,9 @@ Window::Window(int width, int height, const LPCWSTR name)
 	:
 	width(width), height(height)
 {
+	screen_height = height;
+	screen_width = width;
+
 	/* vytvorenie canvasu ktorý sa prispôsobí okrajom okna */
 	RECT wr;
 	wr.left = 100;
@@ -86,6 +90,8 @@ Window::Window(int width, int height, const LPCWSTR name)
 
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
 
+	ImGui_ImplWin32_Init(hWnd);
+
 	pGfx = std::make_unique<Graphics>(hWnd);
 
 	window_is_running = true;
@@ -93,6 +99,7 @@ Window::Window(int width, int height, const LPCWSTR name)
 
 Window::~Window()
 {
+	ImGui_ImplWin32_Shutdown();
 	window_is_running = false;
 	DestroyWindow(hWnd);
 }
@@ -153,6 +160,11 @@ LRESULT CALLBACK Window::HandleMsgInvoke(HWND hWnd, UINT msg, WPARAM wParam, LPA
 
 LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
+	if(ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+	{
+		return true;
+	}
+	const auto& imio = ImGui::GetIO();
 	const POINTS pt = MAKEPOINTS(lParam);
 
 	switch (msg)
@@ -171,6 +183,10 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 		/* SYSKEY použité kvôli altu */
 	case WM_SYSKEYDOWN:
 		/* vypnutie autorepatu */
+		if(imio.WantCaptureKeyboard)
+		{
+			break;
+		}
 		if(!(lParam & 0x4000'0000))
 		{
 			kbd.OnKeyPressed(static_cast<unsigned char>(wParam));
@@ -178,12 +194,20 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 		break;
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
+		if (imio.WantCaptureKeyboard)
+		{
+			break;
+		}
 		kbd.OnKeyReleased(static_cast<unsigned char>(wParam));
 		break;
 	/* -------------------------- */
 	/* všetky myšové eventy */
 	case WM_MOUSEMOVE:
 	{
+		if (imio.WantCaptureMouse)
+		{
+			break;
+		}
 		if(pt.x >= 0 && pt.x < width && pt.y >= 0 && pt.y < height)
 		{
 			mouse.OnMouseMove(pt.x, pt.y);

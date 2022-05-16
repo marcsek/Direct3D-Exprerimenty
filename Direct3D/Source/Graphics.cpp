@@ -4,6 +4,9 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 #include "Macros/GraphicsThrowMacros.h"
+#include "WindowPrkotiny/Window.h"
+#include "Vendor/ImGui/imgui_impl_dx11.h"
+#include "Vendor/ImGui/imgui_impl_win32.h"
 
 namespace wrl = Microsoft::WRL;
 
@@ -70,11 +73,11 @@ Graphics::Graphics(HWND hWnd)
 	GFX_THROW_INFO(pDevice->CreateDepthStencilState(&dsd, &pDSState));
 
 	pContext->OMSetDepthStencilState(pDSState.Get(), 1u);
-
+	
 	wrl::ComPtr<ID3D11Texture2D> pDepthStencil;
 	D3D11_TEXTURE2D_DESC descDepth = { };
-	descDepth.Width = 640u;
-	descDepth.Height = 470u;
+	descDepth.Width = static_cast<UINT>(Window::screen_width);
+	descDepth.Height = static_cast<UINT>(Window::screen_height);
 	descDepth.MipLevels = 1u;
 	descDepth.ArraySize = 1u;
 	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
@@ -93,17 +96,25 @@ Graphics::Graphics(HWND hWnd)
 	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), pDSV.Get());
 
 	D3D11_VIEWPORT vp;
-	vp.Width = 640;
-	vp.Height = 470;
+	vp.Width = Window::screen_width;
+	vp.Height = Window::screen_height;
 	vp.MinDepth = 0;
 	vp.MaxDepth = 1;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	pContext->RSSetViewports(1u, &vp);
+
+	ImGui_ImplDX11_Init(pDevice.Get(), pContext.Get());
 }
 
 void Graphics::EndFrame()
 {
+	if(imGuiEnabled)
+	{
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	}
+
 	HRESULT hr;
 #ifndef NDEBUG
 	infoManager.Set();
@@ -123,8 +134,15 @@ void Graphics::EndFrame()
 	pSwapChain->Present(1u, 0u);
 }
 
-void Graphics::ClearBuffer(float r, float g, float b) noexcept
+void Graphics::BeginFrame(float r, float g, float b) noexcept
 {
+	if(imGuiEnabled)
+	{
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+	}
+
 	const float color[] = { r, g, b, 1.0f };
 	pContext->ClearRenderTargetView(pTarget.Get(), color);
 	pContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0.0f);
@@ -143,6 +161,31 @@ void Graphics::SetProjection(DirectX::FXMMATRIX proj) noexcept
 DirectX::XMMATRIX Graphics::GetProjection() const noexcept
 {
 	return projection;
+}
+
+void Graphics::SetCamera(DirectX::FXMMATRIX cam) noexcept
+{
+	camera = cam;
+}
+
+DirectX::XMMATRIX Graphics::GetCamera() const noexcept
+{
+	return camera;
+}
+
+void Graphics::EnableImGui() noexcept
+{
+	imGuiEnabled = true;
+}
+
+void Graphics::DisableImGui() noexcept
+{
+	imGuiEnabled = false;
+}
+
+bool Graphics::IsImGuiEnabled() const noexcept
+{
+	return imGuiEnabled;
 }
 
 Graphics::HrException::HrException(int line, const char* file, HRESULT hr, std::vector<std::string> infoMsgs) noexcept

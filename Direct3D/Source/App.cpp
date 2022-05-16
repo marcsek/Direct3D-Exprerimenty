@@ -1,61 +1,43 @@
 #include "App.h"
 
 #include <iomanip>
-#include <iostream>
 
 #include "Drawable/Box.h"
 #include <memory>
 
+#include "Drawable/Melon.h"
+#include "Drawable/Pyramide.h"
+#include "Drawable/Sheet.h"
+#include "Drawable/SkinnedBox.h"
+#include "Utilities/LepsiaMath.h"
+#include "GDI/GDIPManager.h"
+#include "Vendor/ImGui/imgui.h"
+#include "Vendor/ImGui/imgui_impl_win32.h"
+#include "Vendor/ImGui/imgui_impl_dx11.h"
+
+
+GDIPManager g;
+
 App::App()
 	:
-	wnd(640, 470, L"Direct 3D")
+	wnd(1152, 864, L"Direct 3D"), poLight(wnd.Gfx())
 {
-	std::mt19937 rng(std::random_device{}());
-	std::uniform_real_distribution<float> adist(0.0f, 3.1415f * 2.0f);
-	std::uniform_real_distribution<float> ddist(0.0f, 3.1415f * 2.0f);
-	std::uniform_real_distribution<float> odist(0.0f, 3.1415f * 0.3f);
-	std::uniform_real_distribution<float> rdist(6.0f, 20.0f);
+	Factory fac(wnd.Gfx());
+	drawables.reserve(200);
+	std::generate_n(std::back_inserter(drawables), 200, fac);
 
-	for (auto i = 0; i < 50; i++)
-	{
-		boxes.push_back
-		(
-			std::make_unique<Box>
-			(
-				wnd.Gfx(),
-				rng,
-				adist,
-				ddist,
-				odist,
-				rdist
-			)
-		);
-	}
-	wnd.Gfx().SetProjection(DirectX::XMMatrixPerspectiveLH(1.0f, 3.0f / 4.0f, 0.5f, 40.0f));
+	wnd.Gfx().SetProjection(DirectX::XMMatrixPerspectiveLH(1.0f, Window::screen_width / Window::screen_height, 0.5f, 70.0f));
 }
 
 int App::Create()
 {
 	while(wnd.IsRunning())
 	{
-		//float duration = lTimer.Mark();
-		//delta += duration / ns;
-
-		//while(delta >= 1.0)
-		//{
-			if (const auto ecode = Window::ProcessMessage())
-			{
-				return *ecode;
-			}
-		/*	std::cout << "\rNepresnost delty: " << std::setprecision(10) << std::fixed << delta - 1.0;
-			delta -= 1.0;
-		}*/
-		float frame_time = frameTimer.Mark();
+		if (const auto ecode = Window::ProcessMessage())
+		{
+			return *ecode;
+		}
 		ComposeFrame();
-		std::cout
-		<< "\rframe_time: " << std::setprecision(5) << std::fixed << frame_time
-		<< " fps: " << std::setprecision(2) << std::fixed << 1.0f / frame_time;
-
 	}
 	return 0;
 }
@@ -66,14 +48,64 @@ App::~App()
 
 void App::ComposeFrame()
 {
-	wnd.Gfx().ClearBuffer(0.07f, 0.0f, 0.12f);
-	auto dt = lTimer.Mark();
+	auto dt = lTimer.Mark() * simulation_speed;
 
-	for(auto& b : boxes)
+	wnd.Gfx().BeginFrame(0.07f, 0.0f, 0.12f);
+	wnd.Gfx().SetCamera(cam.GetMatrix());
+	poLight.Bind(wnd.Gfx(), cam.GetMatrix());
+
+	for(const auto& drawable : drawables)
 	{
-		b->Update(dt);
-		b->Draw(wnd.Gfx());
+		drawable->Update(wnd.kbd.KeyIsPressed(VK_SPACE) ? 0.0f : dt);
+		drawable->Draw(wnd.Gfx());
 	}
+	poLight.Draw(wnd.Gfx());
+
+	if(ImGui::Begin("Simulation Settings"))
+	{
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+			1000.0 / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::SliderFloat("Speed factor", &simulation_speed, 0.0f, 4.0f);
+
+		ImGui::Spacing();
+		ImGui::Text("Drawable amount %d", drawables.size());
+
+		ImGui::BeginGroup();
+		
+			if (ImGui::Button("Add random")) {
+				Factory fac(wnd.Gfx());
+				drawables.push_back(fac());
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Add 100")) {
+				Factory fac(wnd.Gfx());
+				drawables.reserve(100);
+				std::generate_n(std::back_inserter(drawables), 100, fac);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Delete last")) {
+				if (drawables.size() > 0)
+				{
+					drawables.pop_back();
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Delete all")) {
+				if (drawables.size() > 0)
+				{
+					drawables.clear();
+				}
+			}
+			ImGui::EndGroup();
+			ImGui::Spacing();
+
+			ImGui::Text("Simulation status: %s (Press space to pause)", wnd.kbd.KeyIsPressed(VK_SPACE) ? "PAUSED" : "RUNNING");
+	}
+	ImGui::End();
+
+	cam.SpawnControlWindow();
+
+	poLight.SpawnConstrolWindow();
 
 	wnd.Gfx().EndFrame();
 }
