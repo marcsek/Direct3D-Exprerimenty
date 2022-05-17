@@ -11,6 +11,7 @@
 #include "Utilities/LepsiTimer.h"
 #include "Vendor/ImGui/ImGuiManager.h"
 #include "Lights/PointLight.h" 
+#include <set>
 
 class Drawable;
 
@@ -24,6 +25,10 @@ public:
 private:
 	void ComposeFrame();
 
+	void SpawnSimulationWindow() noexcept;
+	void SpawnBoxManagerWindow() noexcept;
+	void SpawnBoxWindows() noexcept;
+
 	ImGuiManager im_gui_manager;
 	inline static bool show_demo_window = true;
 
@@ -34,6 +39,9 @@ private:
 
 	std::vector<std::unique_ptr<class Drawable>> drawables;
 
+	std::vector<class Box*> boxes;
+	std::optional<int> comboBoxIndex;
+	std::set<int> boxControlIds;
 	float simulation_speed = 1.0f;
 
 private:
@@ -64,6 +72,17 @@ private:
 					gfx, rng, adist, ddist, 
 					odist, rdist, bdist, tdist
 					);
+			case 2:
+				return std::make_unique<Pyramid>(
+					gfx, rng, adist, ddist,
+					odist, rdist, tdist
+					);
+			case 3:
+				return std::make_unique<SkinnedBox>(
+					gfx, rng, adist, ddist,
+					odist, rdist
+					);
+
 				/*
 				return std::make_unique<Melon>(
 					gfx, rng, adist, ddist,
@@ -87,7 +106,7 @@ private:
 	private:
 		Graphics& gfx;
 		std::mt19937 rng{ std::random_device{}() };
-		std::uniform_int_distribution<int> sdist{ 0,1 };
+		std::uniform_int_distribution<int> sdist{ 0, 3 };
 		std::uniform_real_distribution<float> adist{ 0.0f,PI * 2.0f };
 		std::uniform_real_distribution<float> ddist{ 0.0f,PI * 0.5f };
 		std::uniform_real_distribution<float> odist{ 0.0f,PI * 0.08f };

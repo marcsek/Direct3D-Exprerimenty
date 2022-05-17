@@ -5,6 +5,7 @@
 #include <d3dcompiler.h>
 #include "../Bindable/Texture.h"
 #include "../Utilities/Surface.h"
+#include "../Vendor/ImGui/imgui.h"
 
 Box::Box
 (
@@ -70,22 +71,58 @@ Box::Box
 	}
 	AddBind(std::make_unique<TransformCbuf>(gfx, *this));
 
-	struct PSMaterialConstant
-	{
-		alignas(16) dx::XMFLOAT3 color;
-		float specularIntensity = 0.6f;
-		float specularPower = 30.0f;
-		float padding[2];
-	} colorConst;
-
-	colorConst.color = material;
-	AddBind(std::make_unique<PixelConstantBuffer<PSMaterialConstant>>(gfx, colorConst, 1u));
+	materialConstants.color = material;
+	//AddBind(std::make_unique<MaterialCBuf>(gfx, metrialConstants, 1u));
+	AddBind(std::make_unique<PixelConstantBuffer<PSMaterialConstant>>(gfx, materialConstants, 1u));
 
 	dx::XMStoreFloat3x3
 	(
 		&mt,
 		dx::XMMatrixScaling(1.0f, 1.0f, bdist(rng))
 	);
+}
+
+bool Box::SpawnControlWindow(int id, Graphics& gfx) noexcept
+{
+	using namespace std::string_literals;
+	bool open = true;
+
+	bool need_to_sync = false;
+
+	if (ImGui::Begin(("Box "s + std::to_string(id)).c_str(), &open))
+	{
+		ImGui::Text("Material properties");
+		const auto col =  ImGui::ColorEdit3("Material Color", &materialConstants.color.x);
+		const auto spec = ImGui::SliderFloat("Specular Intensity", &materialConstants.specularIntensity, 0.05f, 4.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+		const auto specp =  ImGui::SliderFloat("Specular Power", &materialConstants.specularPower, 1.0f, 200.0f, "%.2f", ImGuiSliderFlags_Logarithmic);
+		need_to_sync = col || spec || specp;
+		ImGui::Spacing();
+		
+		ImGui::Text("Position");
+		ImGui::SliderFloat("R", &r, 0.0f, 80.0f, "%.1f");
+		ImGui::SliderAngle("Theta", &theta, -180.0f, 180.0f);
+		ImGui::SliderAngle("Phi", &phi, -180.0f, 180.0f);
+		ImGui::Spacing();
+		
+		ImGui::Text("Orientation");
+		ImGui::SliderAngle("Roll", &roll, -180.0f, 180.0f);
+		ImGui::SliderAngle("Pitch", &pitch, -180.0f, 180.0f);
+		ImGui::SliderAngle("Yaw", &yaw, -180.0f, 180.0f);
+	}
+	ImGui::End();
+
+	if (need_to_sync)
+	{
+		SyncMaterial(gfx);
+	}
+	return open;
+}
+
+void Box::SyncMaterial(Graphics& gfx) noexcept
+{
+	auto pConstPS = QueryBindable<PixelConstantBuffer<PSMaterialConstant>>();
+	assert(pConstPS != nullptr);
+	pConstPS->Update(gfx, materialConstants);
 }
 
 

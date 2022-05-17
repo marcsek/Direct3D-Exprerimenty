@@ -26,6 +26,14 @@ App::App()
 	drawables.reserve(200);
 	std::generate_n(std::back_inserter(drawables), 200, fac);
 
+	for (auto& pd : drawables)
+	{
+		if (auto pb = dynamic_cast<Box*>(pd.get()))
+		{
+			boxes.push_back(pb);
+		}
+	}
+
 	wnd.Gfx().SetProjection(DirectX::XMMatrixPerspectiveLH(1.0f, Window::screen_width / Window::screen_height, 0.5f, 70.0f));
 }
 
@@ -61,7 +69,22 @@ void App::ComposeFrame()
 	}
 	poLight.Draw(wnd.Gfx());
 
-	if(ImGui::Begin("Simulation Settings"))
+	SpawnSimulationWindow();
+
+	cam.SpawnControlWindow();
+
+	poLight.SpawnConstrolWindow();
+
+	SpawnBoxManagerWindow();
+	
+	SpawnBoxWindows();
+
+	wnd.Gfx().EndFrame();
+}
+
+void App::SpawnSimulationWindow() noexcept
+{
+	if (ImGui::Begin("Simulation Settings"))
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
 			1000.0 / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -71,43 +94,94 @@ void App::ComposeFrame()
 		ImGui::Text("Drawable amount %d", drawables.size());
 
 		ImGui::BeginGroup();
-		
-			if (ImGui::Button("Add random")) {
-				Factory fac(wnd.Gfx());
-				drawables.push_back(fac());
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Add 100")) {
-				Factory fac(wnd.Gfx());
-				drawables.reserve(100);
-				std::generate_n(std::back_inserter(drawables), 100, fac);
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Delete last")) {
-				if (drawables.size() > 0)
-				{
-					drawables.pop_back();
-				}
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Delete all")) {
-				if (drawables.size() > 0)
-				{
-					drawables.clear();
-				}
-			}
-			ImGui::EndGroup();
-			ImGui::Spacing();
 
-			ImGui::Text("Simulation status: %s (Press space to pause)", wnd.kbd.KeyIsPressed(VK_SPACE) ? "PAUSED" : "RUNNING");
+		if (ImGui::Button("Add random")) {
+			Factory fac(wnd.Gfx());
+			drawables.push_back(fac());
+
+			for (auto& pd : drawables)
+			{
+				if (auto pb = dynamic_cast<Box*>(pd.get()))
+				{
+					boxes.push_back(pb);
+				}
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Add 100")) {
+			Factory fac(wnd.Gfx());
+			drawables.reserve(100);
+			std::generate_n(std::back_inserter(drawables), 100, fac);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Delete last")) {
+			if (drawables.size() > 0)
+			{
+				drawables.pop_back();
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Delete all")) {
+			if (drawables.size() > 0)
+			{
+				drawables.clear();
+				boxes.clear();
+			}
+		}
+		ImGui::EndGroup();
+		ImGui::Spacing();
+
+		ImGui::Text("Simulation status: %s (Press space to pause)", wnd.kbd.KeyIsPressed(VK_SPACE) ? "PAUSED" : "RUNNING");
 	}
 	ImGui::End();
+}
 
-	cam.SpawnControlWindow();
+void App::SpawnBoxManagerWindow() noexcept
+{
+	if (ImGui::Begin("Boxes"))
+	{
+		using namespace std::string_literals;
+		const auto preview = comboBoxIndex ? std::to_string(*comboBoxIndex) : "Choose a box to edit"s;
+		if (ImGui::BeginCombo("Box Number", preview.c_str()))
+		{
+			for (int i = 0; i < boxes.size(); i++)
+			{
+				const bool selected = comboBoxIndex == i;
 
-	poLight.SpawnConstrolWindow();
+				if (ImGui::Selectable(std::to_string(i).c_str(), selected))
+				{
+					comboBoxIndex = i;
+				}
+				if (selected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+		if (ImGui::Button("Spawn Control Window") && comboBoxIndex)
+		{
+			boxControlIds.insert(*comboBoxIndex);
+			comboBoxIndex.reset();
+		}
+	}
+	ImGui::End();
+}
 
-	wnd.Gfx().EndFrame();
+void App::SpawnBoxWindows() noexcept
+{
+	if (boxes.size() <= 0) return;
+	for (auto i = boxControlIds.begin(); i != boxControlIds.end();)
+	{
+		if (!boxes[*i]->SpawnControlWindow(*i, wnd.Gfx()))
+		{
+			i = boxControlIds.erase(i);
+		}
+		else
+		{
+			i++;
+		}
+	}
 }
 
 

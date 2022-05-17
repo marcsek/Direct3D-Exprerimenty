@@ -16,7 +16,21 @@ public:
 		DirectX::XMFLOAT3 material
 	);
 
-	//DirectX::XMMATRIX GetTransfromXM() const noexcept;
+	/*DirectX::XMMATRIX GetTransfromXM() const noexcept;*/
+
+	bool SpawnControlWindow(int id, Graphics& gfx) noexcept;
+
+private:
+	void SyncMaterial(Graphics& gfx) noexcept;
+
+private:
+	struct PSMaterialConstant
+	{
+		DirectX::XMFLOAT3 color;
+		float specularIntensity = 0.6f;
+		float specularPower = 30.0f;
+		float padding[3];
+	} materialConstants;
 
 private:
 	DirectX::XMFLOAT3X3 mt;

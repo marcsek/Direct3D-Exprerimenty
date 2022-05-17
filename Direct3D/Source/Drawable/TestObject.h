@@ -1,5 +1,7 @@
 #pragma once
+
 #include "DrawableBase.h"
+#include "../Utilities/LepsiaMath.h"
 
 template<class T>
 class TestObject : public DrawableBase<T>
@@ -29,12 +31,12 @@ public:
 
 	void Update(float dt) noexcept
 	{
-		roll += droll * dt;
-		pitch += dpitch * dt;
-		yaw += dyaw * dt;
-		theta += dtheta * dt;
-		phi += dphi * dt;
-		chi += dchi * dt;
+		roll = wrap_angle(roll + droll * dt);
+		pitch = wrap_angle(pitch + dpitch * dt);
+		yaw = wrap_angle(yaw + dyaw * dt);
+		theta = wrap_angle(theta + dtheta * dt);
+		phi = wrap_angle(phi + dphi * dt);
+		chi = wrap_angle(chi + dchi * dt);
 	}
 
 	DirectX::XMMATRIX GetTransfromXM() const noexcept
@@ -48,7 +50,7 @@ public:
 			dx::XMMatrixRotationRollPitchYaw(theta, phi, chi);
 	}
 
-private:
+protected:
 	float r;
 	float roll = 0.0f;
 	float pitch = 0.0f;

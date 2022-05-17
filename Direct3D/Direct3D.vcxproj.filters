@@ -333,5 +333,9 @@
     <FxCompile Include="Source\Shaders\Solid\SolidPS.hlsl" />
     <FxCompile Include="Source\Shaders\Solid\SolidVS.hlsl" />
     <FxCompile Include="Source\Shaders\PhongL\IndexedPhongPS.hlsl" />
+    <FxCompile Include="Source\Shaders\PhongL\BlendedPhongPS.hlsl" />
+    <FxCompile Include="Source\Shaders\PhongL\BlendedPhongVS.hlsl" />
+    <FxCompile Include="Source\Shaders\PhongL\PhongTexturePS.hlsl" />
+    <FxCompile Include="Source\Shaders\PhongL\PhongTextureVS.hlsl" />
   </ItemGroup>
 </Project>

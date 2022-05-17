@@ -23,6 +23,19 @@ protected:
 	void AddIndexBuffer(std::unique_ptr<class IndexBuffer> ibuf) noexcept;
 	void AddBind(std::unique_ptr<class Bindable> bind) noexcept;
 
+	template<class T>
+	T* QueryBindable() noexcept
+	{
+		for (auto& bind : binds)
+		{
+			if (auto pt = dynamic_cast<T*>(bind.get()))
+			{
+				return pt;
+			}
+		}
+		return nullptr;
+	}
+
 private:
 	virtual const std::vector<std::unique_ptr<Bindable>>& GetStaticBinds() const noexcept = 0;
 
