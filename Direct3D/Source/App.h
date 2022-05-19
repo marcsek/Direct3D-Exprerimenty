@@ -4,6 +4,7 @@
 #include "Drawable/Cylinder.h"
 #include "Drawable/Melon.h"
 #include "Drawable/Pyramide.h"
+#include "Drawable/AssTest.h"
 #include "Drawable/Sheet.h"
 #include "Drawable/SkinnedBox.h"
 #include "Utilities/LepsiaMath.h"
@@ -82,6 +83,11 @@ private:
 					gfx, rng, adist, ddist,
 					odist, rdist
 					);
+			case 4:
+				return std::make_unique<AssTest>(
+					gfx, rng, adist, ddist,
+					odist, rdist, mat, 0.5f
+					);
 
 				/*
 				return std::make_unique<Melon>(
@@ -106,7 +112,7 @@ private:
 	private:
 		Graphics& gfx;
 		std::mt19937 rng{ std::random_device{}() };
-		std::uniform_int_distribution<int> sdist{ 0, 3 };
+		std::uniform_int_distribution<int> sdist{ 0, 4 };
 		std::uniform_real_distribution<float> adist{ 0.0f,PI * 2.0f };
 		std::uniform_real_distribution<float> ddist{ 0.0f,PI * 0.5f };
 		std::uniform_real_distribution<float> odist{ 0.0f,PI * 0.08f };

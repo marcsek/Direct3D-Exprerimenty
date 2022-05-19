@@ -15,7 +15,6 @@
 #include "Vendor/ImGui/imgui_impl_win32.h"
 #include "Vendor/ImGui/imgui_impl_dx11.h"
 
-
 GDIPManager g;
 
 App::App()
